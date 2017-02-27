@@ -9,13 +9,13 @@ local_networks=[
 	"::1/64",
 ]
 
-[[forwarded_zones]]
+[[forwarded_zone]]
 	name="consul."
 	authoritative=true
 	upstream="172.31.1.2:8600"
 	private=true
 
-[[forwarded_zones]]
+[[forwarded_zone]]
 	name="some.example.com."
 	authoritative=true
 	upstream="10.23.2.2:53"
