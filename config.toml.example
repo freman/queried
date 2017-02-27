@@ -1,0 +1,22 @@
+resolvers=["8.8.8.8","8.8.4.4"]
+listen=[":53"]
+local_networks=[
+	"127.0.0.0/8",
+	"192.168.0.0/16",
+	"172.16.0.0/12",
+	"10.0.0.0/8",
+	"fc00::/7",
+	"::1/64",
+]
+
+[[forwarded_zones]]
+	name="consul."
+	authoritative=true
+	upstream="172.31.1.2:8600"
+	private=true
+
+[[forwarded_zones]]
+	name="some.example.com."
+	authoritative=true
+	upstream="10.23.2.2:53"
+	private=false
