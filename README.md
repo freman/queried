@@ -10,7 +10,7 @@ Tired of trying to get what we needed from off the shelf solutions, I wrote this
 
 See (the sample configuration file)[config.toml.example]
 
-### resolvers `[string]`
+### resolvers _[string]_
 
 An array of ip addresses for upstream resolvers
 
@@ -18,7 +18,7 @@ An array of ip addresses for upstream resolvers
 ["8.8.8.8","8.8.4.4"]
 ```
 
-### listen `[string]`
+### listen _[string]_
 
 An array of ip's and ports to listen on
 
@@ -26,7 +26,7 @@ An array of ip's and ports to listen on
 [":53", "127.0.0.1:5053"]
 ```
 
-### local_networks `[string]`
+### local_networks _[string]_
 
 An array of networks in CIDR notation to consider private, internal or otherwise safe to relay to
 
@@ -41,11 +41,11 @@ An array of networks in CIDR notation to consider private, internal or otherwise
 ]
 ```
 
-### `[[forwarded_zone]]`
+### [[forwarded_zone]]
 
-A zone and how to forward it
+A zone and how to forward it, repeat this whole block as needed
 
-#### name `string`
+#### name _string_
 
 Name of the zone to forward
 
@@ -53,15 +53,15 @@ Name of the zone to forward
 "consul."
 ```
 
-#### authoritative `boolean`
+#### authoritative _boolean_
 
-Return records with the `aa` flag set
+Return records with the __aa__ flag set
 
 ```
 true
 ```
 
-#### upstream `string`
+#### upstream _string_
 
 Server to forward to
 
@@ -69,14 +69,13 @@ Server to forward to
 "172.31.9.24:8600"
 ```
 
-#### private `bool`
+#### private _bool_
 
 Answer requests for this zone only from private networks
 
 ```
 true
 ```
-
 
 ## License
 
