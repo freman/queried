@@ -6,9 +6,9 @@ Forward dns with authority while still recursivly resolving.
 
 Tired of trying to get what we needed from off the shelf solutions, I wrote this.
 
-## Config
+## Configuration
 
-See (the sample configuration file)[config.toml.example]
+See [the sample configuration file](config.toml.example)
 
 ### resolvers _[string]_
 
