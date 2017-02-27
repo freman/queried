@@ -100,7 +100,10 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 
 		c := new(dns.Client)
 		c.Net = proto
-		in, _, _ := c.Exchange(r, zone.Upstream)
+		in, _, err := c.Exchange(r, zone.Upstream)
+		if err != nil {
+			return
+		}
 		if zone.Authoritative {
 			in.Authoritative = true
 			in.MsgHdr.Authoritative = true
