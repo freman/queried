@@ -20,12 +20,18 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"net"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/miekg/dns"
+)
+
+var (
+	version = "Undefined"
+	commit  = "Undefined"
 )
 
 func init() {
@@ -35,7 +41,15 @@ func init() {
 func main() {
 	configFile := flag.String("config", "config.toml", "Config file")
 	debug := flag.Bool("debug", false, "Debug log level")
+	showVersion := flag.Bool("version", false, "Show version and exit")
+
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("queried - %s (%s)\n", version, commit)
+		fmt.Println("https://github.com/freman/queried")
+		return
+	}
 
 	if *debug {
 		log.SetLevel(log.DebugLevel)

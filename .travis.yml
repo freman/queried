@@ -1,0 +1,23 @@
+language: go
+go:
+- 1.8
+script:
+- go vet
+- go get
+- mkdir -p releases
+- CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags "-X main.version=$TRAVIS_TAG
+  -X main.commit=$TRAVIS_COMMIT" -o release/queried-linux-386 github.com/freman/queried
+- CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -ldflags "-X main.version=$TRAVIS_TAG
+  -X main.commit=$TRAVIS_COMMIT" -o release/queried-linux-arm github.com/freman/queried
+- CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$TRAVIS_TAG
+  -X main.commit=$TRAVIS_COMMIT" -o release/queried-linux-amd64 github.com/freman/queried
+deploy:
+  provider: releases
+  api_key:
+    secure: UnfT7vkXk8RgzxbPn9WKHaFz5fIc60KiTnRHcG30Z1FAK1vyk8ye0FZ67dlAbK9N97G1GoeKu8maablnQxd79noT4lwMGiwciJQvOTTC0QVHqTCmHABUdgNivlaIMEg5F58+++ra3u/OtrL9Fnt2jeZPXZtmSkpAdALxdI2CdzGFptZzKTTdRsLF5KwJd49Ja0T0KxjIE01JdcjbYPPtPv3qnoWx/rB0vP8o8ZDh+ZvYjC4qArQUzwulDWgTqLVpb80qfG/AhgY03Djt2SPcLTvlDO1qfGO7b351IO6ZD9lKLCZzyhx/FkbCxROv0vWeNey2b9n/in30pkc079j4fhBIRuhK0jAIolpR1UomcnzXFHxx0YrTAJXqijBjmMroqF/bvEBjTe+6O2buzDzvXm1R/0IsqszbWbLRVpj8cRWUOtNNxrSHxpLadCKiFpcv74rhTcGa0LE8dQvX3XvNcDwEOK497zfdSEHOV0R9DYzaxX9SmX7jiaPgzFCajwIWRPZimN1b0DzKcxI3bs+ZROt1TijpcWijkGIBxuKaXoFYyr3BIMfruDpVY9wT1mGlxlUeMJfco7ih8Nd2+1obEE77c4ZJ0REDv9+2+r6mUo3ZEgAkfuZgNQw1/LE7tVls0xVAePtPk9PwWeO95dk9IxI8RBC+SY0u1KYAfu7kDyA=
+  file:
+    - release/queried-linux-386
+    - release/queried-linux-arm
+    - release/queried-linux-amd64
+  on:
+    repo: freman/queried
