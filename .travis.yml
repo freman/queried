@@ -21,3 +21,4 @@ deploy:
     - release/queried-linux-amd64
   on:
     repo: freman/queried
+    tags: true
