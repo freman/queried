@@ -77,6 +77,18 @@ Answer requests for this zone only from private networks
 true
 ```
 
+#### override _map_
+
+A map of subdomains and ips
+
+```
+{"*.pages"="127.0.0.1"}
+```
+
+Notes:
+ * Exact domain matches prioritised over wildcards
+ * Wildcards as first found first served in no guaranteed order
+
 ## License
 
 Copyright (c) 2017 Shannon Wynter. Licensed under GPL3. See the [LICENSE.md](LICENSE.md) file for a copy of the license.

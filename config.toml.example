@@ -20,3 +20,4 @@ local_networks=[
 	authoritative=true
 	upstream="10.23.2.2:53"
 	private=false
+	override={"*.pages"="127.0.0.1"}
