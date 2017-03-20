@@ -32,6 +32,7 @@ type forwardedZone struct {
 	Authoritative bool
 	Upstream      string
 	Private       bool
+	Override      map[string]gct.IP
 }
 
 var config = struct {

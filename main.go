@@ -23,9 +23,11 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	gct "github.com/freman/go-commontypes"
 	"github.com/miekg/dns"
 )
 
@@ -105,6 +107,42 @@ func netip(w dns.ResponseWriter) (proto string, realIP net.IP) {
 	return
 }
 
+func searchOverride(haystack map[string]gct.IP, needle string) *net.IP {
+	// Quick search first for a simple match
+	if ip, found := haystack[needle]; found {
+		return &ip.IP
+	}
+
+	// Long slow slog through all the overrides for wildcards
+	for name, ip := range haystack {
+		if !strings.HasPrefix(name, "*.") {
+			continue
+		}
+		check := strings.TrimPrefix(name, "*")
+		if strings.HasSuffix(needle, check) {
+			return &ip.IP
+		}
+	}
+	return nil
+}
+
+func override(zone forwardedZone, r *dns.Msg) dns.RR {
+	if len(r.Question) == 1 {
+		zoneSuffix := "." + zone.Name
+		q := r.Question[0]
+		if q.Qtype == dns.TypeA && strings.HasSuffix(q.Name, zoneSuffix) {
+			domain := strings.TrimSuffix(r.Question[0].Name, zoneSuffix)
+			if ip := searchOverride(zone.Override, domain); ip != nil {
+				rra := new(dns.A)
+				rra.Hdr = dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 60}
+				rra.A = *ip
+				return rra
+			}
+		}
+	}
+	return nil
+}
+
 func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 	return func(w dns.ResponseWriter, r *dns.Msg) {
 		proto, ip := netip(w)
@@ -112,17 +150,28 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 			return
 		}
 
-		c := new(dns.Client)
-		c.Net = proto
-		in, _, err := c.Exchange(r, zone.Upstream)
-		if err != nil {
-			return
+		var reply *dns.Msg
+		if rr := override(zone, r); rr != nil {
+			reply = r
+			reply.Answer = append(r.Answer, rr)
 		}
+
+		if reply == nil {
+			c := new(dns.Client)
+			c.Net = proto
+
+			var err error
+			reply, _, err = c.Exchange(r, zone.Upstream)
+			if err != nil {
+				return
+			}
+		}
+
 		if zone.Authoritative {
-			in.Authoritative = true
-			in.MsgHdr.Authoritative = true
+			reply.Authoritative = true
+			reply.MsgHdr.Authoritative = true
 		}
-		w.WriteMsg(in)
+		w.WriteMsg(reply)
 	}
 }
 
