@@ -108,6 +108,11 @@ func netip(w dns.ResponseWriter) (proto string, realIP net.IP) {
 }
 
 func searchOverride(haystack map[string]gct.IP, needle string) *net.IP {
+	log.WithFields(log.Fields{
+		"haystack": haystack,
+		"needle":   needle,
+	}).Debug("Searching...")
+
 	// Quick search first for a simple match
 	if ip, found := haystack[needle]; found {
 		return &ip.IP
@@ -152,7 +157,8 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 
 		var reply *dns.Msg
 		if rr := override(zone, r); rr != nil {
-			reply = r
+			reply = new(dns.Msg)
+			reply.SetReply(r)
 			reply.Answer = append(r.Answer, rr)
 		}
 

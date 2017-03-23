@@ -20,7 +20,6 @@ package main
 
 import (
 	"io/ioutil"
-	"net"
 	"os"
 
 	gct "github.com/freman/go-commontypes"
@@ -41,30 +40,10 @@ var config = struct {
 	LocalNetworks gct.Networks
 	ForwardedZone []forwardedZone
 }{
-	Resolvers: []string{"8.8.8.8", "8.8.4.4"},
-	Listen:    []string{":53"},
-	LocalNetworks: gct.Networks{
-		gct.Network{IPNet: &net.IPNet{IP: []byte{252, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Mask: []byte{254, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}},
-		gct.Network{IPNet: &net.IPNet{IP: []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, Mask: []byte{255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0}}},
-		gct.Network{IPNet: &net.IPNet{IP: []byte{127, 0, 0, 0}, Mask: []byte{255, 0, 0, 0}}},
-		gct.Network{IPNet: &net.IPNet{IP: []byte{10, 0, 0, 0}, Mask: []byte{255, 0, 0, 0}}},
-		gct.Network{IPNet: &net.IPNet{IP: []byte{172, 16, 0, 0}, Mask: []byte{255, 240, 0, 0}}},
-		gct.Network{IPNet: &net.IPNet{IP: []byte{192, 168, 0, 0}, Mask: []byte{255, 255, 0, 0}}},
-	},
-	ForwardedZone: []forwardedZone{
-		forwardedZone{
-			Name:          "consul.",
-			Authoritative: true,
-			Upstream:      "172.31.1.2:8600",
-			Private:       true,
-		},
-		forwardedZone{
-			Name:          "some.example.com.",
-			Authoritative: true,
-			Upstream:      "10.23.2.2:53",
-			Private:       false,
-		},
-	},
+	Resolvers:     []string{},
+	Listen:        []string{},
+	LocalNetworks: gct.Networks{},
+	ForwardedZone: []forwardedZone{},
 }
 
 func loadConfig(file string) error {
