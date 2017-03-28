@@ -85,7 +85,7 @@ func main() {
 					l.WithError(err).Fatal("Unable to listen")
 				}
 
-				l.Fatal("Server exited unexpectantly")
+				l.Fatal("Server exited expectantly")
 			}(listen, proto)
 		}
 	}
@@ -108,13 +108,15 @@ func netip(w dns.ResponseWriter) (proto string, realIP net.IP) {
 }
 
 func searchOverride(haystack map[string]gct.IP, needle string) *net.IP {
-	log.WithFields(log.Fields{
+	logCtx := log.WithFields(log.Fields{
 		"haystack": haystack,
 		"needle":   needle,
-	}).Debug("Searching...")
+	})
+	logCtx.Debug("Searching...")
 
 	// Quick search first for a simple match
 	if ip, found := haystack[needle]; found {
+		logCtx.Debug("Direct match")
 		return &ip.IP
 	}
 
@@ -125,24 +127,8 @@ func searchOverride(haystack map[string]gct.IP, needle string) *net.IP {
 		}
 		check := strings.TrimPrefix(name, "*")
 		if strings.HasSuffix(needle, check) {
+			logCtx.Debug("Wildcard match")
 			return &ip.IP
-		}
-	}
-	return nil
-}
-
-func override(zone forwardedZone, r *dns.Msg) dns.RR {
-	if len(r.Question) == 1 {
-		zoneSuffix := "." + zone.Name
-		q := r.Question[0]
-		if q.Qtype == dns.TypeA && strings.HasSuffix(q.Name, zoneSuffix) {
-			domain := strings.TrimSuffix(r.Question[0].Name, zoneSuffix)
-			if ip := searchOverride(zone.Override, domain); ip != nil {
-				rra := new(dns.A)
-				rra.Hdr = dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 60}
-				rra.A = *ip
-				return rra
-			}
 		}
 	}
 	return nil
@@ -155,14 +141,27 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 			return
 		}
 
-		var reply *dns.Msg
-		if rr := override(zone, r); rr != nil {
-			reply = new(dns.Msg)
-			reply.SetReply(r)
-			reply.Answer = append(r.Answer, rr)
+		reply := new(dns.Msg)
+		reply.SetReply(r)
+
+		zoneSuffix := "." + zone.Name
+		for _, q := range r.Question {
+			if q.Qtype == dns.TypeA && strings.HasSuffix(q.Name, zoneSuffix) {
+				domain := strings.TrimSuffix(q.Name, zoneSuffix)
+				if ip := searchOverride(zone.Override, domain); ip != nil {
+					log.WithFields(log.Fields{
+						"question": r.Question[0],
+						"ip":       ip,
+					}).Debug("Found an IP")
+					reply.Answer = append(reply.Answer, &dns.A{
+						Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 60},
+						A:   *ip,
+					})
+				}
+			}
 		}
 
-		if reply == nil {
+		if len(reply.Answer) == 0 {
 			c := new(dns.Client)
 			c.Net = proto
 
