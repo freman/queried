@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	gct "github.com/freman/go-commontypes"
 	"github.com/miekg/dns"
 )
