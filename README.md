@@ -89,6 +89,10 @@ Notes:
  * Exact domain matches prioritised over wildcards
  * Wildcards as first found first served in no guaranteed order
 
+#### nonlocaloverride _map_
+
+Much like the above but only answered when not queried a local address
+
 ## License
 
 Copyright (c) 2017 Shannon Wynter. Licensed under GPL3. See the [LICENSE.md](LICENSE.md) file for a copy of the license.

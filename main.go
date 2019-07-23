@@ -26,9 +26,9 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	gct "github.com/freman/go-commontypes"
 	"github.com/miekg/dns"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -137,7 +137,8 @@ func searchOverride(haystack map[string]gct.IP, needle string) *net.IP {
 func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 	return func(w dns.ResponseWriter, r *dns.Msg) {
 		proto, ip := netip(w)
-		if zone.Private && !config.LocalNetworks.Contains(ip) {
+		localRequest := config.LocalNetworks.Contains(ip)
+		if zone.Private && !localRequest {
 			return
 		}
 
@@ -148,6 +149,18 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 		for _, q := range r.Question {
 			if q.Qtype == dns.TypeA && strings.HasSuffix(q.Name, zoneSuffix) {
 				domain := strings.TrimSuffix(q.Name, zoneSuffix)
+				if !localRequest {
+					if ip := searchOverride(zone.NonLocalOverride, domain); ip != nil {
+						log.WithFields(log.Fields{
+							"question": r.Question[0],
+							"ip":       ip,
+						}).Debug("Found an IP")
+						reply.Answer = append(reply.Answer, &dns.A{
+							Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 60},
+							A:   *ip,
+						})
+					}
+				}
 				if ip := searchOverride(zone.Override, domain); ip != nil {
 					log.WithFields(log.Fields{
 						"question": r.Question[0],
