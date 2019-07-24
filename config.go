@@ -27,12 +27,13 @@ import (
 )
 
 type forwardedZone struct {
-	Name             string
-	Authoritative    bool
-	Upstream         string
-	Private          bool
-	Override         map[string]gct.IP
-	NonLocalOverride map[string]gct.IP
+	Name              string
+	Authoritative     bool
+	Upstream          string
+	Private           bool
+	Override          map[string]gct.IP
+	NonLocalOverride  map[string]gct.IP
+	OverrideResponses bool
 }
 
 var config = struct {

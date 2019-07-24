@@ -142,6 +142,8 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 			return
 		}
 
+		var overridden bool
+
 		reply := new(dns.Msg)
 		reply.SetReply(r)
 
@@ -159,6 +161,8 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 							Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 60},
 							A:   *ip,
 						})
+						overridden = true
+						continue
 					}
 				}
 				if ip := searchOverride(zone.Override, domain); ip != nil {
@@ -170,6 +174,8 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 						Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 60},
 						A:   *ip,
 					})
+					overridden = true
+
 				}
 			}
 		}
@@ -189,6 +195,28 @@ func zoneHandler(zone forwardedZone) func(dns.ResponseWriter, *dns.Msg) {
 			reply.Authoritative = true
 			reply.MsgHdr.Authoritative = true
 		}
+
+		if zone.OverrideResponses && !overridden {
+			for _, field := range []*[]dns.RR{&reply.Answer, &reply.Extra} {
+				for i, rr := range *field {
+					if a, isa := rr.(*dns.A); isa {
+						hostPart := strings.TrimSuffix(a.Hdr.Name, zoneSuffix)
+						if ip := searchOverride(zone.Override, hostPart); ip != nil {
+							a.A = *ip
+							(*field)[i] = a
+							continue
+						}
+						if !localRequest {
+							if ip := searchOverride(zone.NonLocalOverride, hostPart); ip != nil {
+								a.A = *ip
+								(*field)[i] = a
+							}
+						}
+					}
+				}
+			}
+		}
+
 		w.WriteMsg(reply)
 	}
 }
